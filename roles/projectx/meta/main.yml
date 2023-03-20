@@ -1,0 +1,9 @@
+galaxy_info:
+  author: Khalid Grandi
+  description: Template ansible role for a docker-compose project
+  license: MIT
+
+  min_ansible_version: "2.10"
+
+#dependencies:
+#  module: community.docker

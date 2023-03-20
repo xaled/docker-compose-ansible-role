@@ -1,0 +1,7 @@
+---
+# handlers file for projectx
+#- name: Restart ProjectX
+#  community.docker.docker_compose:
+#    project_src: "{{ project_directory}}"
+#    files: "{{ compose_files }}"
+#    state: restarted

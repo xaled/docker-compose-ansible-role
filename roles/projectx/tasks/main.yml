@@ -1,0 +1,154 @@
+---
+# tasks file for projectx
+##
+- name: Debian update & install packages
+  block:
+    - name: Update all installed packages using (apt) module
+      apt:
+        name: '*'
+        state: latest
+        update_cache: yes
+        only_upgrade: yes
+      tags:
+        - update
+        - install
+      register: apt_update_status
+
+    - name: Remove packages not needed anymore
+      apt:
+        autoremove: yes
+      tags:
+        - update
+        - install
+
+    - name: Install Docker Compose
+      tags:
+        - install
+      apt:
+        name: docker-compose
+        state: present
+
+    - name: Check if a reboot is needed for Debian and Ubuntu boxes
+      register: reboot_required_file
+      stat:
+        path: /var/run/reboot-required
+        get_md5: no
+      tags:
+        - install
+        - update
+
+    - name: Reboot the Debian or Ubuntu server
+      reboot:
+      when: reboot_required_file.stat.exists
+      tags:
+        - install
+        - update
+  when: ansible_os_family == "Debian"
+  become: true
+
+- name: Debian update & install packages
+  block:
+    - name: Update all installed packages using YUM module
+      yum:
+        name: '*'
+        state: latest
+        update_cache: yes
+        update_only: yes
+      tags:
+        - update
+        - install
+      register: yum_update_status
+
+    - name: Remove packates not needed anymore
+      tags:
+        - update
+        - install
+      yum:
+        autoremove: yes
+
+    - name: Install Docker Compose Redhat
+      become: true
+      tags:
+        - install
+      yum:
+        name: docker-compose
+        state: present
+    - name: Reboot when packages were updated
+      reboot:
+      when: yum_update_status.changed
+  when: ansible_os_family == "RedHat"
+  become: true
+
+- name: Stop the project
+  community.docker.docker_compose:
+    project_src: "{{ project_directory}}"
+    files: "{{ compose_files }}"
+    state: absent
+  tags:
+    - update
+    - update-config
+
+- name: Sync files to destination directory
+  block:
+    - name: Sync files to destination directory task
+      ansible.posix.synchronize:
+        src: "{{ src_project_directory }}"
+        dest: "{{ project_directory}}"
+        rsync_opts: "{{ sync.rsync_opts }}"
+        copy_links: "{{ sync.copy_links }}"
+        delete: "{{ sync.delete }}"
+      register: rsync_output
+    - debug:
+        var: rsync_output.cmd
+    - debug:
+        var: rsync_output.stdout_lines
+  tags:
+    - install
+    - update
+    - update-config
+
+
+- name: Create .env file from template
+  template:
+    src: "{{ role_path }}/templates/.env.j2"
+    dest: "{{ project_directory }}/.env"
+  tags:
+    - install
+    - update
+    - update-config
+
+- name: Extract files
+  become: true
+  unarchive:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: "{{ item.remote_src }}"
+  loop: "{{ compressed_files }}"
+  tags:
+    - install
+
+- name: Pull and build images
+  community.docker.docker_compose:
+    project_src: "{{ project_directory}}"
+    files: "{{ compose_files }}"
+    build: yes
+    pull: yes
+  tags:
+    - install
+    - update
+#  notify: restart ProjectX
+
+#- name: Restart on config update
+#  notify: restart ProjectX
+#  tags:
+#    - update-config
+
+- name: Restart ProjectX
+  community.docker.docker_compose:
+    project_src: "{{ project_directory}}"
+    files: "{{ compose_files }}"
+    state: present
+  tags:
+    - install
+    - update
+    - update-config

@@ -1,0 +1,5 @@
+servers:
+  hosts:
+    testvm:
+      ansible_host: 192.168.56.116
+      ansible_user: root

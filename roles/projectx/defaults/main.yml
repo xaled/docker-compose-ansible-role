@@ -1,0 +1,26 @@
+---
+# defaults file for projectx
+project_name: "projectx"
+project_directory: "/opt/{{ project_name }}"
+src_project_directory: "{{ role_path }}/files/"
+compose_files:
+  - "{{ project_directory }}/docker-compose.yml"
+sync:
+  rsync_opts:
+    - "--filter=:- .gitignore"
+    - "--exclude=.git"
+    - "--exclude=data/"
+    - "--exclude=data.tar.gz"
+  delete: no
+  copy_links: yes
+compressed_files:
+  - src: data.tar.gz
+    dest: "{{ project_directory }}"
+    remote_src: no
+
+# .env.j2 default variables
+compose_project_name: "{{ project_name }}"
+projectx_image_tag: "latest"
+projectx_image: "mpepping/cyberchef:{{ projectx_image_tag }}"
+data_dir: "./data"
+projectx_http_port: 8080

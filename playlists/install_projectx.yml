@@ -1,0 +1,8 @@
+- name: Playbook to install the ProjectX role
+  hosts: servers
+  become: true
+#  remote_user: root
+  roles:
+    - role: roles/projectx
+      tags:
+        - install
