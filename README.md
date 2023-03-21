@@ -56,11 +56,11 @@ ansible-playbook playbooks/projectx_playbook_sample.yml --tags pull-logs
 Here are the variables used in this Ansible role:
 
 - `project_name`: Sets the name of the project.
-- `project_directory`: Sets the path of installation for the project. Default value is "/opt/{{ project_name }}".
-- `src_project_directory`: Sets the path of the source project directory. Default value is "{{ role_path }}/files/".
-- `compose_files`: A list containing the path(s) of the docker-compose file(s). Default value is ["{{ project_directory }}/docker-compose.yml"].
+- `project_directory`: Sets the path of installation for the project. Default value is ``"/opt/{{ project_name }}"``.
+- `src_project_directory`: Sets the path of the source project directory. Default value is `"{{ role_path }}/files/"`.
+- `compose_files`: A list containing the path(s) of the docker-compose file(s). Default value is `["{{ project_directory }}/docker-compose.yml"]`.
 - `sync`: Set options for synchronizing the project directory files:
-  - `rsync_opts`: A list of rsync options to be used during file synchronization. Default value is ["--filter=:- .gitignore", "--exclude=.git", "--exclude=logs/", "--exclude=data/", "--exclude=data.tar.gz"].
+  - `rsync_opts`: A list of rsync options to be used during file synchronization. Default value is `["--filter=:- .gitignore", "--exclude=.git", "--exclude=logs/", "--exclude=data/", "--exclude=data.tar.gz"]`.
   - `delete`: A boolean value indicating whether to delete files on the remote server that don't exist locally. Default value is "no".
   - `copy_links`: A boolean value indicating whether to copy symbolic links as links or as files. Default value is "yes".
 - `compressed_files`: A list containing the source and destination paths for compressed files to be decompressed and transferred:
@@ -68,11 +68,11 @@ Here are the variables used in this Ansible role:
   - `dest`: Sets the destination path of the compressed file..
   - `remote_src`: A boolean value indicating whether the compressed file is located on the remote or local host.
 - `logging`: Sets the options for logging:
-  - `remote_directory`: Sets the remote directory where log files will be stored. Default value is "{{ project_directory }}/logs".
-  - `local_directory`: Sets the local directory where log files will be stored. Default value is "{{ inventory_dir }}/logs".
+  - `remote_directory`: Sets the remote directory where log files will be stored. Default value is `"{{ project_directory }}/logs"`.
+  - `local_directory`: Sets the local directory where log files will be stored. Default value is `"{{ inventory_dir }}/logs"`.
   - `user`, `group` and `mode`: Set options for creating logs subdirectories.
   - `sources`: A list containing the options for logging sources.
-- `compose_project_name`: Sets the the docker-compose [project name](https://docs.docker.com/compose/reference/). Default value is "{{ project_name }}".
+- `compose_project_name`: Sets the the docker-compose [project name](https://docs.docker.com/compose/reference/). Default value is `"{{ project_name }}"`.
 
 
 ## License
