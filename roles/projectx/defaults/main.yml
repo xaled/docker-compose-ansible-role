@@ -29,12 +29,10 @@ logging:
       remote_directory: null
       rsync_opts: []
 #        - "--exclude=test"
-      rsync_delay_updates: false
     - log_type: "apache_error"
       remote_directory: null
       rsync_opts: []
 #        - "--exclude=test"
-      rsync_delay_updates: false
 
 
 # .env.j2 default variables
