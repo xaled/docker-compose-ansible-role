@@ -1,0 +1,13 @@
+version: '3'
+
+services:
+  projectx:
+    image: ${PROJECTX_IMAGE}
+    volumes:
+      - ${DATA_DIR}:/data
+      - ${LOG_DIR}:/var/log/httpd
+      - ./config/httpd.conf:/usr/local/apache2/conf/httpd.conf
+      - ./www:/usr/local/apache2/htdocs/
+    ports:
+      - ${PROJECTX_HTTP_PORT}:80
+    restart: unless-stopped

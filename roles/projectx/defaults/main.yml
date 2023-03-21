@@ -9,6 +9,7 @@ sync:
   rsync_opts:
     - "--filter=:- .gitignore"
     - "--exclude=.git"
+    - "--exclude=logs/"
     - "--exclude=data/"
     - "--exclude=data.tar.gz"
   delete: no
@@ -17,10 +18,28 @@ compressed_files:
   - src: data.tar.gz
     dest: "{{ project_directory }}"
     remote_src: no
+logging:
+  remote_directory: "{{ project_directory }}/logs"
+  local_directory: "{{ inventory_dir }}/logs"
+  user: root
+  group: root
+  mode: "0755"
+  sources:
+    - log_type: "access_combined"
+      remote_directory: null
+      rsync_opts: []
+#        - "--exclude=test"
+      rsync_delay_updates: false
+    - log_type: "apache_error"
+      remote_directory: null
+      rsync_opts: []
+#        - "--exclude=test"
+      rsync_delay_updates: false
+
 
 # .env.j2 default variables
 compose_project_name: "{{ project_name }}"
-projectx_image_tag: "latest"
-projectx_image: "mpepping/cyberchef:{{ projectx_image_tag }}"
+projectx_image_tag: "2.4-alpine" # "latest"
+projectx_image: "httpd:{{ projectx_image_tag }}"
 data_dir: "./data"
 projectx_http_port: 8080

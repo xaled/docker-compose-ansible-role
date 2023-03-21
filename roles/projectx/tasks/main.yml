@@ -11,6 +11,7 @@
         only_upgrade: yes
       tags:
         - update
+        - update-packages
         - install
       register: apt_update_status
 
@@ -19,6 +20,7 @@
         autoremove: yes
       tags:
         - update
+        - update-packages
         - install
 
     - name: Install Docker Compose
@@ -57,12 +59,14 @@
       tags:
         - update
         - install
+        - update-packages
       register: yum_update_status
 
     - name: Remove packates not needed anymore
       tags:
         - update
         - install
+        - update-packages
       yum:
         autoremove: yes
 
@@ -76,17 +80,31 @@
     - name: Reboot when packages were updated
       reboot:
       when: yum_update_status.changed
+      tags:
+        - install
+        - update
   when: ansible_os_family == "RedHat"
   become: true
 
-- name: Stop the project
+- name: Check if Project directory already exists
+  stat:
+    path: "{{ project_directory}}"
+  register: project_directory_stat
+  tags:
+    - update
+    - update-config
+    - install
+
+- name: Stop the project if it exists
   community.docker.docker_compose:
     project_src: "{{ project_directory}}"
     files: "{{ compose_files }}"
     state: absent
+  when: project_directory_stat.stat.exists
   tags:
     - update
     - update-config
+    - install
 
 - name: Sync files to destination directory
   block:
@@ -117,16 +135,6 @@
     - update
     - update-config
 
-- name: Extract files
-  become: true
-  unarchive:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    remote_src: "{{ item.remote_src }}"
-  loop: "{{ compressed_files }}"
-  tags:
-    - install
-
 - name: Pull and build images
   community.docker.docker_compose:
     project_src: "{{ project_directory}}"
@@ -136,14 +144,41 @@
   tags:
     - install
     - update
-#  notify: restart ProjectX
 
-#- name: Restart on config update
-#  notify: restart ProjectX
-#  tags:
-#    - update-config
+- name: Create Log directories
+  file:
+    path: "{{ item.remote_directory or logging.remote_directory + '/' + item.log_type }}/"
+    state: directory
+    owner: "{{ logging.user }}"
+    group: "{{ logging.group }}"
+    mode: "{{ logging.mode }}"
+    force: yes
+  loop: "{{ logging.sources }}"
+  tags:
+    - install
+    - update
+    - update-config
 
-- name: Restart ProjectX
+- name: First Run Tasks
+  block:
+    - name: Extract files
+      unarchive:
+        src: "{{ item.src }}"
+        dest: "{{ item.dest }}"
+        remote_src: "{{ item.remote_src }}"
+      loop: "{{ compressed_files }}"
+
+#    - name: Additional First run tasks
+#     module: {}
+
+  when: "not project_directory_stat.stat.exists or 'first-run' in ansible_run_tags"
+  tags:
+    - install
+    - first-run
+    - never # run only in the first install
+
+
+- name: Start ProjectX
   community.docker.docker_compose:
     project_src: "{{ project_directory}}"
     files: "{{ compose_files }}"
@@ -152,3 +187,16 @@
     - install
     - update
     - update-config
+
+# Pull logs
+- name: Pull logs from remote host to local directory
+  ansible.posix.synchronize:
+    src: "{{ item.remote_directory or logging.remote_directory + '/' + item.log_type }}/"
+    dest: "{{ logging.local_directory }}/{{ item.log_type }}/"
+    rsync_opts: "{{ item.rsync_opts }}"
+    partial: true
+    mode: pull
+  loop: "{{ logging.sources }}"
+  tags:
+    - pull-logs
+    - never

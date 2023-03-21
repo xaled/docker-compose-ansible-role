@@ -4,5 +4,3 @@
 #  remote_user: root
   roles:
     - role: roles/projectx
-      tags:
-        - install
