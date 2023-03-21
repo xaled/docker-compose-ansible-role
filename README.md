@@ -34,7 +34,8 @@ Here is the structure of this repository:
 
 ## Playbook Usage
 The `playbooks/projectx_playbook_sample.yml` file contains a sample playbook that can be used as a reference.
-Here are examples of running the `playbooks/projectx_playbook_sample.yml` playbook with specific tags:
+
+Here are examples of running this playbook with specific tags:
 - To install the project, use the `install` tag:
 ```
 ansible-playbook playbooks/projectx_playbook_sample.yml --tags install
